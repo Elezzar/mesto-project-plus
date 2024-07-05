@@ -5,6 +5,8 @@ import {
   Date,
 } from 'mongoose';
 
+import validator from 'validator';
+
 // Интерфейс для описания свойств карточки
 export interface ICard {
   name: string;
@@ -25,6 +27,7 @@ const cardSchema = new Schema<ICard>({
   link: {
     type: String,
     required: true,
+    validate: (value: string) => validator.isURL(value),
   },
   owner: {
     type: Schema.Types.ObjectId,

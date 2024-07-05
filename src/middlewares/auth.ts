@@ -2,6 +2,8 @@ import { Response, NextFunction } from 'express';
 
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
+import { JWT_SECRET } from '../config';
+
 import UnauthorizedError from '../utils/errors/UnauthorizedError';
 
 import { errors } from '../utils/utils';
@@ -17,7 +19,7 @@ export default (req: IUserID | JwtPayload, res: Response, next: NextFunction) =>
   const token = authorization.replace('Bearer ', '');
   let payload;
   try {
-    payload = jwt.verify(token, 'some-secret-key');
+    payload = jwt.verify(token, JWT_SECRET);
   } catch (error) {
     return next(new UnauthorizedError(errors.unauthorizedError.message));
   }

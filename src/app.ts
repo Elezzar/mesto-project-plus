@@ -11,6 +11,8 @@ import mongoose from 'mongoose';
 
 import { errors } from 'celebrate';
 
+import { MONGO_URI } from './config';
+
 import router from './routes/index';
 
 import { loginUser, createUser } from './controllers/users';
@@ -30,7 +32,7 @@ const app = express();
 app.use(express.json());
 app.use(urlencoded({ extended: true }));
 
-mongoose.connect('mongodb://localhost:27017/mestodb')
+mongoose.connect(MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch((err) => console.error('MongoDB connection error:', err));
 

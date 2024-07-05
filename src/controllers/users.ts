@@ -6,6 +6,8 @@ import { Request, Response, NextFunction } from 'express';
 
 import jwt, { JwtPayload } from 'jsonwebtoken';
 
+import { JWT_SECRET } from '../config';
+
 import User from '../models/user';
 
 import NotFoundError from '../utils/errors/NotFoundError';
@@ -137,7 +139,7 @@ export const loginUser = async (req: Request, res: Response, next: NextFunction)
   try {
     const { email, password } = req.body;
     const user = await User.findByEmailAndPassword(email, password);
-    const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
     return res.send({ token });
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
