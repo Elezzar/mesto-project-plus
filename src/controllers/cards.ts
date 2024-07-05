@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import {
   Request,
   Response,
+  NextFunction,
 } from 'express';
 
 import Card from '../models/card';
@@ -10,21 +11,25 @@ import Card from '../models/card';
 import {
   STATUS_OK,
   STATUS_CREATED,
-  serverError,
-  badRequestError,
-  notFoundError,
+  errors,
 } from '../utils/utils';
 
-export const getCards = async (req: Request, res: Response) => {
+import NotFoundError from '../utils/errors/NotFoundError';
+
+import ForbiddenError from '../utils/errors/ForbiddenError';
+
+import BadRequestError from '../utils/errors/BadRequestError';
+
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const cards = await Card.find({});
     return res.status(STATUS_OK).send(cards);
   } catch (error) {
-    return res.status(serverError.error).send({ message: serverError.message });
+    return next(error);
   }
 };
 
-export const createCard = async (req: Request | any, res: Response) => {
+export const createCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const ownerId = req.user._id;
     const card = await Card.create({
@@ -36,30 +41,39 @@ export const createCard = async (req: Request | any, res: Response) => {
     return res.status(STATUS_CREATED).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.ValidationError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      return next(new BadRequestError(errors.badRequestError.message));
     }
-    return res.status(serverError.error).send({ message: serverError.message });
+    return next(error);
   }
 };
 
-export const deleteCard = async (req: Request, res: Response) => {
+export const deleteCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
-    const card = await Card.findByIdAndRemove(cardId);
+
+    const card = await Card.findById(cardId);
 
     if (!card) {
-      return res.status(notFoundError.error).send({ message: notFoundError.message });
+      return next(new NotFoundError(errors.notFoundError.message));
     }
+
+    if (String(card.owner) !== req.user!._id) {
+      return next(new ForbiddenError(errors.forbiddenError.message));
+    }
+
+    // Удаляем карточку
+    await card.remove();
     return res.status(STATUS_OK).send(card);
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      next(new BadRequestError(errors.badRequestError.message));
     }
-    return res.status(serverError.error).send({ message: serverError.message });
+
+    return next(error);
   }
 };
 
-export const likeCard = async (req: Request | any, res: Response) => {
+export const likeCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -69,19 +83,19 @@ export const likeCard = async (req: Request | any, res: Response) => {
     );
 
     if (!card) {
-      return res.status(notFoundError.error).send({ message: notFoundError.message });
+      return next(new NotFoundError(errors.notFoundError.message));
     }
 
     return res.status(STATUS_OK).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      next(new BadRequestError(errors.badRequestError.message));
     }
-    return res.status(serverError.error).send({ message: serverError.message });
+    return next(error);
   }
 };
 
-export const dislikeCard = async (req: Request | any, res: Response) => {
+export const dislikeCard = async (req: Request | any, res: Response, next: NextFunction) => {
   try {
     const { cardId } = req.params;
     const card = await Card.findByIdAndUpdate(
@@ -91,14 +105,14 @@ export const dislikeCard = async (req: Request | any, res: Response) => {
     );
 
     if (!card) {
-      return res.status(notFoundError.error).send({ message: notFoundError.message });
+      return next(new NotFoundError(errors.notFoundError.message));
     }
 
     return res.status(STATUS_OK).send(card);
   } catch (error) {
     if (error instanceof mongoose.Error.CastError) {
-      return res.status(badRequestError.error).send({ message: badRequestError.message });
+      next(new BadRequestError(errors.badRequestError.message));
     }
-    return res.status(serverError.error).send({ message: serverError.message });
+    return next(error);
   }
 };

@@ -1,13 +1,16 @@
-import { Response, Router } from 'express';
+import { Request, Response, Router } from 'express';
 
-import { notFoundError } from '../utils/utils';
+import { errors } from '../utils/utils';
 
 import userRouter from './users';
+
+import cardRouter from './cards';
 
 const router = Router();
 
 router
   .use('/users', userRouter)
-  .use((res: Response) => res.status(notFoundError.error).send({ message: notFoundError.message }));
+  .use('/cards', cardRouter)
+  .use((req: Request, res: Response) => res.status(errors.notFoundError.error).send({ message: errors.notFoundError.message }));
 
 export default router;

@@ -8,16 +8,18 @@ import {
   dislikeCard,
 } from '../controllers/cards';
 
+import { validateCardId, validateCreateCard } from '../utils/validation';
+
 const router = Router();
 
 router.get('/', getCards);
 
-router.post('/', createCard);
+router.post('/', validateCreateCard, createCard);
 
-router.delete('/:cardId', deleteCard);
+router.delete('/:cardId', validateCardId, deleteCard);
 
-router.put('/:cardId/like', likeCard);
+router.put('/:cardId/like', validateCardId, likeCard);
 
-router.delete('/:cardId/like', dislikeCard);
+router.delete('/:cardId/like', validateCardId, dislikeCard);
 
 export default router;

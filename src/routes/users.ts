@@ -1,29 +1,36 @@
-import { Router, Request, Response } from 'express';
+import {
+  Router,
+  Request,
+  Response,
+  NextFunction,
+} from 'express';
 
 import {
   getUsers,
   getUserById,
-  createUser,
   updateUserInfo,
   updateUserAvatar,
+  getAuthUser,
 } from '../controllers/users';
 
-import { IUserRequest } from '../utils/utils';
+import { IUserRequest } from '../utils/types';
+
+import { validateUpdateUserInfo, validateUpdateUserAvatar, validateUserId } from '../utils/validation';
 
 const router = Router();
 
 router.get('/', getUsers);
 
-router.get('/:userId', getUserById);
+router.get('/:userId', validateUserId, getUserById);
 
-router.post('/', createUser);
+router.get('/me', getAuthUser);
 
-router.patch('/me', async (req: Request, res: Response) => {
-  await updateUserInfo((req as IUserRequest), res);
+router.patch('/me', validateUpdateUserInfo, async (req: Request, res: Response, next: NextFunction) => {
+  await updateUserInfo((req as IUserRequest), res, next);
 });
 
-router.patch('/me/avatar', async (req: Request, res: Response) => {
-  await updateUserAvatar((req as IUserRequest), res);
+router.patch('/me/avatar', validateUpdateUserAvatar, async (req: Request, res: Response, next: NextFunction) => {
+  await updateUserAvatar((req as IUserRequest), res, next);
 });
 
 export default router;
